@@ -1,21 +1,34 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO ekilmer/libserdes
-    REF v5.5.1
-    SHA512 d240f5c4c19d8d13bf7c52f1a776a0f64f2f40b0d0f5d9fdc6f476f82c391cdc224607577c375d532a1f600c5897e5ea9624d7cca0ea8d518c3f54e8444d3654
+    REPO confluentinc/libserdes
+    REF a50fed317403fdef64b95c061614a5148597f401 # v6.1.0-betaxxxxxx (current HEAD master)
+    SHA512 d19e924a57f56a63f926f668704f903b4867c150add61f57a5657accbe8a60aad6d3632f7ed571d41049f3ab34d0e1e3228916c322a8678413f363ace2c9fd23
     HEAD_REF master
+    PATCHES
+          support-latest-avro.patch
 )
+
+set(LDFLAGS "-L${CURRENT_INSTALLED_DIR}/lib")
+set(CFLAGS "-I${CURRENT_INSTALLED_DIR}/include")
+set(CPPFLAGS "-I${CURRENT_INSTALLED_DIR}/include")
 
 if (VCPKG_TARGET_IS_WINDOWS)
 else() # Build in UNIX
+    set(ENV{PKG_CONFIG_PATH} "${CURRENT_INSTALLED_DIR}/lib/pkgconfig")
   vcpkg_execute_required_process(
-    COMMAND ./configure --prefix=${CURRENT_PACKAGES_DIR} --enable-static
+    COMMAND ./configure --prefix=${CURRENT_PACKAGES_DIR} "--CFLAGS=${CFLAGS}" "--CPPFLAGS=${CPPFLAGS}" "--LDFLAGS=${LDFLAGS}"
     WORKING_DIRECTORY ${SOURCE_PATH}
     LOGNAME configure-${TARGET_TRIPLET}
   )
 
   vcpkg_execute_required_process(
-    COMMAND make -j ${VCPKG_CONCURRENCY} install
+    COMMAND make -j ${VCPKG_CONCURRENCY} libs
+    WORKING_DIRECTORY ${SOURCE_PATH}
+    LOGNAME build-${TARGET_TRIPLET}
+  )
+
+  vcpkg_execute_required_process(
+    COMMAND make install
     WORKING_DIRECTORY ${SOURCE_PATH}
     LOGNAME install-${TARGET_TRIPLET}
   )
