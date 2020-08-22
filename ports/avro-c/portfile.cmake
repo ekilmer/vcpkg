@@ -8,7 +8,7 @@ vcpkg_from_github(
   SHA512 f27afc82671a87c76b024a8f161f5353c25dd83c40683bce62fe5ac99e434a4d8a24265bf653b428c45747e6847a360fee0ce5489b04e4a3762a8364f0155782
   HEAD_REF master
   PATCHES
-        snappy-cmake-fix.patch
+        avro.patch
 )
 
 vcpkg_configure_cmake(
