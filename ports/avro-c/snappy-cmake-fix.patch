@@ -20,8 +20,9 @@ index 6c8d7aaf..f4e93e3d 100644
  endif (LZMA_FOUND)
  
 -set(CODEC_LIBRARIES ${ZLIB_LIBRARIES} ${LZMA_LIBRARIES} ${SNAPPY_LIBRARIES})
+-set(CODEC_PKG "@ZLIB_PKG@ @LZMA_PKG@ @SNAPPY_PKG@")
 +set(CODEC_LIBRARIES ${ZLIB_LIBRARIES} ${LZMA_LIBRARIES} Snappy::snappy)
- set(CODEC_PKG "@ZLIB_PKG@ @LZMA_PKG@ @SNAPPY_PKG@")
++set(CODEC_PKG "${ZLIB_PKG} ${LZMA_PKG} ${SNAPPY_PKG}")
  
  # Jansson JSON library
 diff --git a/lang/c/FindSnappy.cmake b/lang/c/FindSnappy.cmake
