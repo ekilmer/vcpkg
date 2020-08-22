@@ -93,7 +93,7 @@ index 5f158fdc..43d8c663 100644
  find_package_handle_standard_args(Snappy DEFAULT_MSG
      SNAPPY_LIBRARIES
 diff --git a/lang/c/examples/quickstop.c b/lang/c/examples/quickstop.c
-index ff9e9700..ca3e35ae 100644
+index ff9e9700..70ec023b 100644
 --- a/lang/c/examples/quickstop.c
 +++ b/lang/c/examples/quickstop.c
 @@ -16,6 +16,7 @@
@@ -104,6 +104,15 @@ index ff9e9700..ca3e35ae 100644
  #include <stdio.h>
  #include <stdlib.h>
  
+@@ -107,7 +108,7 @@ int print_person(avro_file_reader_t db, avro_schema_t reader_schema)
+ 	if (rval == 0) {
+ 		int64_t id;
+ 		int32_t age;
+-		int32_t *p;
++		const char *p;
+ 		size_t size;
+ 		avro_value_t id_value;
+ 		avro_value_t first_value;
 @@ -117,7 +118,7 @@ int print_person(avro_file_reader_t db, avro_schema_t reader_schema)
  
  		if (avro_value_get_by_name(&person, "ID", &id_value, NULL) == 0) {
@@ -113,6 +122,15 @@ index ff9e9700..ca3e35ae 100644
  		}
  		if (avro_value_get_by_name(&person, "First", &first_value, NULL) == 0) {
  			avro_value_get_string(&first_value, &p, &size);
+@@ -133,7 +134,7 @@ int print_person(avro_file_reader_t db, avro_schema_t reader_schema)
+ 		}
+ 		if (avro_value_get_by_name(&person, "Age", &age_value, NULL) == 0) {
+ 			avro_value_get_int(&age_value, &age);
+-			fprintf(stdout, "%"PRId32" | ", age);
++			fprintf(stdout, "%" PRId32 " | ", age);
+ 		}
+ 		fprintf(stdout, "\n");
+ 
 diff --git a/lang/c/src/avro/msinttypes.h b/lang/c/src/avro/msinttypes.h
 index 29be14b9..7efc7026 100644
 --- a/lang/c/src/avro/msinttypes.h
@@ -413,7 +431,7 @@ index 7b389002..50fa0db6 100644
  	}
  	check(rval, avro_write_str(out, avro_schema_name(link->to)));
 diff --git a/lang/c/tests/test_avro_data.c b/lang/c/tests/test_avro_data.c
-index 1da09e6d..220f1e91 100644
+index 1da09e6d..714d5d81 100644
 --- a/lang/c/tests/test_avro_data.c
 +++ b/lang/c/tests/test_avro_data.c
 @@ -28,6 +28,10 @@ avro_writer_t writer;
@@ -432,7 +450,53 @@ index 1da09e6d..220f1e91 100644
  			fprintf(stderr,
  				"Unable to calculate size %s validate=%d "
 -				"(%"PRId64" != %"PRId64")\n  %s\n",
-+				"(%"PRId64" != %" PRId64 ")\n  %s\n",
++				"(%" PRId64 " != %" PRId64 ")\n  %s\n",
  				type, validate, size, avro_writer_tell(writer),
  				avro_strerror());
  			exit(EXIT_FAILURE);
+diff --git a/lang/c/tests/test_interop_data.c b/lang/c/tests/test_interop_data.c
+index 4738f318..79dbd2d0 100644
+--- a/lang/c/tests/test_interop_data.c
++++ b/lang/c/tests/test_interop_data.c
+@@ -17,9 +17,13 @@
+ 
+ #include "avro.h"
+ #include "avro_private.h"
+-#include <dirent.h>
+ #include <stddef.h>
+ #include <stdio.h>
++#ifdef _WIN32
++ #include "msdirent.h"
++#else
++ #include <dirent.h>
++#endif
+ 
+ int should_test(char *d_name)
+ {
+@@ -31,7 +35,7 @@ int should_test(char *d_name)
+     }
+ 
+     ptrdiff_t diff = d_name + strlen(d_name) - ext_pos;
+-    char *substr = malloc(sizeof(char) * diff);
++    char *substr = (char *)malloc(sizeof(char) * diff);
+     strncpy(substr, ext_pos + 1, diff - 1);
+     *(substr + diff - 1) = '\0';
+     if (strcmp(substr, "avro") != 0)
+@@ -53,7 +57,7 @@ int should_test(char *d_name)
+     }
+ 
+     diff = ext_pos - codec_pos;
+-    substr = malloc(sizeof(char) * diff);
++    substr = (char *)malloc(sizeof(char) * diff);
+     strncpy(substr, codec_pos + 1, diff - 1);
+     *(substr + diff - 1) = '\0';
+     if (strcmp(substr, "deflate") == 0 || strcmp(substr, "snappy") == 0)
+@@ -92,7 +96,7 @@ int main(int argc, char *argv[])
+         char *d_name = ent->d_name;
+         size_t d_name_len = strlen(d_name);
+         size_t size = strlen(argv[1]) + d_name_len + 2;
+-        char* path = malloc(sizeof(char) * size);
++        char* path = (char *)malloc(sizeof(char) * size);
+         sprintf(path, "%s/%s", argv[1], d_name);
+ 
+         if (!should_test(d_name))
