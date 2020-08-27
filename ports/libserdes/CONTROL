@@ -1,4 +1,4 @@
 Source: libserdes
 Version: 5.5.1
 Description: libserdes is a schema-based serializer/deserializer C/C++ library with support for Avro and the Confluent Platform Schema Registry.
-Build-Depends: avro-c, avro-cpp, jansson
+Build-Depends: avro-c, avro-cpp, jansson, curl
