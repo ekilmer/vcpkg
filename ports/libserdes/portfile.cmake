@@ -2,8 +2,8 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO ekilmer/libserdes
     # fork of (current HEAD master) with cmake and latest avro support
-    REF f257574b256cbbdd12a2a6d7862379ebc2193b83
-    SHA512 253ea72d7efb43cce0bc8a462933716c01149b26ab9f9e7ecfef5be5c1aaf81eb7e61586bf10faf6fdffb9b78fee2a7a67949a2a4a8881186da26a31c61279c4
+    REF 2e4737243b9ba464a77b7858821337d07c435b77
+    SHA512 bcff63e1afdb9c770509e08a163373c562feddf936c2030ded848b35380a447bb6555395970ee40f53c70812f5485dd81603ff63657887a888e7c3c803615c40
     HEAD_REF dev
 )
 
