@@ -87,15 +87,12 @@ index 69feee5b..f8b1bcaf 100644
  
  include (InstallRequiredSystemLibraries)
  
-@@ -193,9 +201,9 @@ include (CPack)
+@@ -193,7 +201,7 @@ include (CPack)
  install (TARGETS avrocpp avrocpp_s
      LIBRARY DESTINATION lib
      ARCHIVE DESTINATION lib
 -    RUNTIME DESTINATION lib)
 +    RUNTIME DESTINATION bin)
  
--install (TARGETS avrogencpp RUNTIME DESTINATION bin)
-+install (TARGETS avrogencpp RUNTIME DESTINATION tools/bin)
+ install (TARGETS avrogencpp RUNTIME DESTINATION bin)
  
- install (DIRECTORY api/ DESTINATION include/avro
-     FILES_MATCHING PATTERN *.hh)
