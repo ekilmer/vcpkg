@@ -28,19 +28,10 @@ vcpkg_configure_cmake(
 
 vcpkg_install_cmake(ADD_BIN_TO_PATH)
 
-# Tool to generate avro serialization files
-set(tool avrogencpp)
-set(suffix ${VCPKG_TARGET_EXECUTABLE_SUFFIX})
-if(EXISTS "${CURRENT_PACKAGES_DIR}/debug/bin/${tool}${suffix}")
-    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/bin")
-endif()
-if(EXISTS "${CURRENT_PACKAGES_DIR}/bin/${tool}${suffix}")
-    file(COPY "${CURRENT_PACKAGES_DIR}/bin/${tool}${suffix}"
-         DESTINATION "${CURRENT_PACKAGES_DIR}/tools/${PORT}")
-    file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin")
-endif()
+vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/Avro-cpp)
 
 vcpkg_copy_tool_dependencies(${CURRENT_PACKAGES_DIR}/tools/${PORT})
+vcpkg_copy_tool_dependencies(${CURRENT_PACKAGES_DIR}/debug/tools/${PORT})
 
 vcpkg_copy_pdbs()
 

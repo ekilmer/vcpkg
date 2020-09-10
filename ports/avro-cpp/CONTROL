@@ -1,8 +1,8 @@
 Source: avro-cpp
 Version: 1.10.0
 Homepage: https://github.com/apache/avro
-Description: Apache Avro is a data serialization system
-Build-Depends: boost-format, boost-thread, boost-filesystem, boost-iostreams, boost-program-options, boost-random, boost-crc, boost-test, libzip, bzip2, liblzma, zlib, zstd
+Description: Apache Avro is a data serialization system (boost-test, boost-thread, boost-filesystem, for tests)
+Build-Depends: boost-algorithm, boost-crc, boost-format, boost-random, boost-iostreams, boost-program-options, boost-regex, zlib
 
 Feature: snappy
 Build-Depends: snappy

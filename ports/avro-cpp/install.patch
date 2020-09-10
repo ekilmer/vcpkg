@@ -1,5 +1,24 @@
+diff --git a/lang/c++/Avro-cppConfig.cmake.in b/lang/c++/Avro-cppConfig.cmake.in
+new file mode 100644
+index 00000000..104f0e85
+--- /dev/null
++++ b/lang/c++/Avro-cppConfig.cmake.in
+@@ -0,0 +1,13 @@
++@PACKAGE_INIT@
++
++include(CMakeFindDependencyMacro)
++
++find_dependency(ZLIB)
++find_dependency(Boost @Boost_MAJOR_VERSION@.@Boost_MINOR_VERSION@ COMPONENTS iostreams program_options regex)
++
++if (@SNAPPY_FOUND@)
++  find_dependency(Snappy)
++endif()
++
++include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
++check_required_components("@PROJECT_NAME@")
 diff --git a/lang/c++/CMakeLists.txt b/lang/c++/CMakeLists.txt
-index 69feee5b..f8b1bcaf 100644
+index 69feee5b..cfe347b4 100644
 --- a/lang/c++/CMakeLists.txt
 +++ b/lang/c++/CMakeLists.txt
 @@ -42,6 +42,8 @@ list(GET AVRO_VERSION 2 AVRO_VERSION_PATCH)
@@ -11,42 +30,132 @@ index 69feee5b..f8b1bcaf 100644
  if (WIN32 AND NOT CYGWIN AND NOT MSYS)
      add_definitions (/EHa)
      add_definitions (
-@@ -121,12 +123,12 @@ set_target_properties (avrocpp PROPERTIES
+@@ -69,8 +71,7 @@ endif ()
+ endif ()
+ 
+ 
+-find_package (Boost 1.38 REQUIRED
+-    COMPONENTS filesystem iostreams program_options regex system)
++find_package (Boost 1.38 REQUIRED COMPONENTS iostreams program_options regex)
+ 
+ find_package(Snappy)
+ if (SNAPPY_FOUND)
+@@ -85,8 +86,6 @@ endif (SNAPPY_FOUND)
+ 
+ add_definitions (${Boost_LIB_DIAGNOSTIC_DEFINITIONS})
+ 
+-include_directories (api ${CMAKE_CURRENT_BINARY_DIR} ${Boost_INCLUDE_DIRS})
+-
+ set (AVRO_SOURCE_FILES
+         impl/Compiler.cc impl/Node.cc impl/LogicalType.cc
+         impl/NodeImpl.cc impl/ResolverSchema.cc impl/Schema.cc
+@@ -105,12 +104,21 @@ set (AVRO_SOURCE_FILES
+         )
+ 
+ add_library (avrocpp SHARED ${AVRO_SOURCE_FILES})
++target_link_libraries (avrocpp Boost::iostreams ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
++target_include_directories(avrocpp PUBLIC
++  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/api>
++  $<INSTALL_INTERFACE:include>
++  PRIVATE ${SNAPPY_INCLUDE_DIR} ${CMAKE_CURRENT_LIST_DIR})
+ 
+ set_property (TARGET avrocpp
+     APPEND PROPERTY COMPILE_DEFINITIONS AVRO_DYN_LINK)
+ 
+ add_library (avrocpp_s STATIC ${AVRO_SOURCE_FILES})
+-target_include_directories(avrocpp_s PRIVATE ${SNAPPY_INCLUDE_DIR})
++target_link_libraries (avrocpp_s Boost::iostreams ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
++target_include_directories(avrocpp_s PUBLIC
++  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/api>
++  $<INSTALL_INTERFACE:include>
++  PRIVATE ${SNAPPY_INCLUDE_DIR} ${CMAKE_CURRENT_LIST_DIR})
+ 
+ set_property (TARGET avrocpp avrocpp_s
+     APPEND PROPERTY COMPILE_DEFINITIONS AVRO_SOURCE)
+@@ -121,68 +129,70 @@ set_target_properties (avrocpp PROPERTIES
  set_target_properties (avrocpp_s PROPERTIES
      VERSION ${AVRO_VERSION_MAJOR}.${AVRO_VERSION_MINOR}.${AVRO_VERSION_PATCH})
  
 -target_link_libraries (avrocpp ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES})
-+target_link_libraries (avrocpp ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
- target_include_directories(avrocpp PRIVATE ${SNAPPY_INCLUDE_DIR})
- 
+-target_include_directories(avrocpp PRIVATE ${SNAPPY_INCLUDE_DIR})
+-
  add_executable (precompile test/precompile.cc)
- 
+-
 -target_link_libraries (precompile avrocpp_s ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES})
-+target_link_libraries (precompile avrocpp_s ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
- 
- macro (gen file ns)
-     add_custom_command (OUTPUT ${file}.hh
-@@ -155,34 +157,40 @@ gen (crossref cr)
- gen (primitivetypes pt)
+-
+-macro (gen file ns)
+-    add_custom_command (OUTPUT ${file}.hh
+-        COMMAND avrogencpp
+-            -p -
+-            -i ${CMAKE_CURRENT_SOURCE_DIR}/jsonschemas/${file}
+-            -o ${file}.hh -n ${ns} -U
+-        DEPENDS avrogencpp ${CMAKE_CURRENT_SOURCE_DIR}/jsonschemas/${file})
+-    add_custom_target (${file}_hh DEPENDS ${file}.hh)
+-endmacro (gen)
+-
+-gen (empty_record empty)
+-gen (bigrecord testgen)
+-gen (bigrecord_r testgen_r)
+-gen (bigrecord2 testgen2)
+-gen (tweet testgen3)
+-gen (union_array_union uau)
+-gen (union_map_union umu)
+-gen (union_conflict uc)
+-gen (recursive rec)
+-gen (reuse ru)
+-gen (circulardep cd)
+-gen (tree1 tr1)
+-gen (tree2 tr2)
+-gen (crossref cr)
+-gen (primitivetypes pt)
++target_link_libraries (precompile avrocpp_s ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
  
  add_executable (avrogencpp impl/avrogencpp.cc)
 -target_link_libraries (avrogencpp avrocpp_s ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES})
-+target_link_libraries (avrogencpp avrocpp_s ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
-+
++target_link_libraries (avrogencpp avrocpp_s  Boost::program_options Boost::regex ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
  
 -enable_testing()
+ 
+-macro (unittest name)
 +if(BUILD_TESTING)
 +  enable_testing()
-+endif()
- 
- macro (unittest name)
++  find_package (Boost 1.38 REQUIRED COMPONENTS filesystem)
++
++  macro (gen file ns)
++    add_custom_command (OUTPUT ${file}.hh
++      COMMAND avrogencpp
++      -p -
++      -i ${CMAKE_CURRENT_SOURCE_DIR}/jsonschemas/${file}
++      -o ${file}.hh -n ${ns} -U
++      DEPENDS avrogencpp ${CMAKE_CURRENT_SOURCE_DIR}/jsonschemas/${file})
++    add_custom_target (${file}_hh DEPENDS ${file}.hh)
++  endmacro (gen)
++
++  gen (empty_record empty)
++  gen (bigrecord testgen)
++  gen (bigrecord_r testgen_r)
++  gen (bigrecord2 testgen2)
++  gen (tweet testgen3)
++  gen (union_array_union uau)
++  gen (union_map_union umu)
++  gen (union_conflict uc)
++  gen (recursive rec)
++  gen (reuse ru)
++  gen (circulardep cd)
++  gen (tree1 tr1)
++  gen (tree2 tr2)
++  gen (crossref cr)
++  gen (primitivetypes pt)
++
++  macro (unittest name)
      add_executable (${name} test/${name}.cc)
 -    target_link_libraries (${name} avrocpp ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES})
-+    target_link_libraries (${name} avrocpp ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
++    target_link_libraries (${name} avrocpp Boost::filesystem ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
++    target_include_directories (${name} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
      add_test (NAME ${name} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${name})
- endmacro (unittest)
- 
+-        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${name})
+-endmacro (unittest)
+-
 -unittest (buffertest)
 -unittest (unittest)
 -unittest (SchemaTests)
@@ -64,7 +173,9 @@ index 69feee5b..f8b1bcaf 100644
 -    union_array_union_hh union_map_union_hh union_conflict_hh
 -    recursive_hh reuse_hh circulardep_hh tree1_hh tree2_hh crossref_hh
 -    primitivetypes_hh empty_record_hh)
-+if(BUILD_TESTING)
++      COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${name})
++  endmacro (unittest)
++
 +    unittest (buffertest)
 +    unittest (unittest)
 +    unittest (SchemaTests)
@@ -87,12 +198,69 @@ index 69feee5b..f8b1bcaf 100644
  
  include (InstallRequiredSystemLibraries)
  
-@@ -193,7 +201,7 @@ include (CPack)
+@@ -191,14 +201,42 @@ set (CPACK_PACKAGE_FILE_NAME "avrocpp-${AVRO_VERSION_MAJOR}")
+ include (CPack)
+ 
  install (TARGETS avrocpp avrocpp_s
++    EXPORT ${PROJECT_NAME}Targets
      LIBRARY DESTINATION lib
      ARCHIVE DESTINATION lib
 -    RUNTIME DESTINATION lib)
-+    RUNTIME DESTINATION bin)
+-
+-install (TARGETS avrogencpp RUNTIME DESTINATION bin)
+-
+-install (DIRECTORY api/ DESTINATION include/avro
+-    FILES_MATCHING PATTERN *.hh)
++    RUNTIME DESTINATION bin
++    PUBLIC_HEADER DESTINATION include/avro)
++
++install (DIRECTORY "${CMAKE_SOURCE_DIR}/api/"
++  DESTINATION "include/avro"
++  FILES_MATCHING PATTERN "*.hh")
++
++install (TARGETS avrogencpp
++  EXPORT ${PROJECT_NAME}Targets
++  RUNTIME DESTINATION bin
++  DESTINATION tools/avro-cpp)
++
++export (EXPORT ${PROJECT_NAME}Targets
++  FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake"
++  NAMESPACE ${PROJECT_NAME}::
++)
++
++include(CMakePackageConfigHelpers)
++
++set(ConfigPackageLocation lib/cmake/${PROJECT_NAME})
++configure_package_config_file (${PROJECT_NAME}Config.cmake.in
++  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
++  INSTALL_DESTINATION ${ConfigPackageLocation})
++
++install(EXPORT ${PROJECT_NAME}Targets
++  FILE ${PROJECT_NAME}Targets.cmake
++  DESTINATION ${ConfigPackageLocation}
++  NAMESPACE ${PROJECT_NAME}::)
++install(
++  FILES
++    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
++  DESTINATION
++    ${ConfigPackageLocation})
  
- install (TARGETS avrogencpp RUNTIME DESTINATION bin)
- 
+ if (NOT CMAKE_BUILD_TYPE)
+     set (CMAKE_BUILD_TYPE Release CACHE STRING
+diff --git a/lang/c++/test/DataFileTests.cc b/lang/c++/test/DataFileTests.cc
+index 4f94d80d..c55eba84 100644
+--- a/lang/c++/test/DataFileTests.cc
++++ b/lang/c++/test/DataFileTests.cc
+@@ -455,10 +455,11 @@ public:
+     // lang/java/avro/src/test/java/org/apache/avro/TestDataFile.java.
+     void testReaderSplits() {
+         boost::mt19937 random(static_cast<uint32_t>(time(0)));
+-        avro::DataFileReader<ComplexInteger> df(filename, writerSchema);
+         std::ifstream just_for_length(
+             filename, std::ifstream::ate | std::ifstream::binary);
+         int length = just_for_length.tellg();
++        just_for_length.close();
++        avro::DataFileReader<ComplexInteger> df(filename, writerSchema);
+         int splits = 10;
+         int end = length;      // end of split
+         int remaining = end;   // bytes remaining
