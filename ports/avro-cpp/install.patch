@@ -112,7 +112,7 @@ index 69feee5b..cfe347b4 100644
  
  add_executable (avrogencpp impl/avrogencpp.cc)
 -target_link_libraries (avrogencpp avrocpp_s ${Boost_LIBRARIES} ${SNAPPY_LIBRARIES})
-+target_link_libraries (avrogencpp avrocpp_s  Boost::program_options Boost::regex ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
++target_link_libraries (avrogencpp avrocpp_s Boost::iostreams Boost::program_options Boost::regex ${SNAPPY_LIBRARIES} ZLIB::ZLIB)
  
 -enable_testing()
  
