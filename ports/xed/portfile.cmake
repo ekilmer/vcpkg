@@ -28,7 +28,7 @@ vcpkg_execute_required_process(
 
 # Install
 vcpkg_execute_required_process(
-  COMMAND ${PYTHON3} ${SOURCE_PATH}/mfile.py install --install-dir="${CURRENT_PACKAGES_DIR}" --extra-ccflags="${CFLAGS}" --extra-cxxflags="${CPPFLAGS}" --extra-linkflags="${LDFLAGS}" --verbose=9
+  COMMAND ${PYTHON3} ${SOURCE_PATH}/mfile.py install --install-dir="${CURRENT_PACKAGES_DIR}" "--extra-ccflags=${CFLAGS}" "--extra-cxxflags=${CPPFLAGS}" "--extra-linkflags=${LDFLAGS}" --verbose=9
   WORKING_DIRECTORY ${SOURCE_PATH}
   LOGNAME python-${TARGET_TRIPLET}-install
 )
