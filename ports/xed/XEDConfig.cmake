@@ -15,8 +15,8 @@ GET_FILENAME_COMPONENT(ROOT "${ROOT}" PATH)
 
 # TODO Debug libs
 # "${ROOT}/debug/lib/xed"
-SET_LIBRARY_TARGET("XED" "XED" "${ROOT}/lib/xed${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/lib/xed${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/include/xed")
-SET_LIBRARY_TARGET("ILD" "XED" "${ROOT}/lib/xed-ild${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/lib/xed-ild${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/include/xed")
+SET_LIBRARY_TARGET("XED" "XED" "${ROOT}/lib/libxed${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/lib/libxed${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/include/xed")
+SET_LIBRARY_TARGET("ILD" "XED" "${ROOT}/lib/libxed-ild${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/lib/libxed-ild${CMAKE_STATIC_LIBRARY_SUFFIX}" "${ROOT}/include/xed")
 #
 #
 #
