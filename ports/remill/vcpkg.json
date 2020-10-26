@@ -6,8 +6,22 @@
   "dependencies": [
     "glog",
     "gflags",
-    "llvm",
-    "xed",
-    "z3"
+    {
+      "name": "llvm",
+      "features": [
+        "tools",
+        "clang",
+        "enable-z3",
+        "libcxx",
+        "libcxxabi",
+        "enable-rtti",
+        "target-x86",
+        "target-arm",
+        "target-aarch64",
+        "target-sparc",
+        "target-nvptx"
+      ]
+    },
+    "xed"
   ]
 }
