@@ -4,13 +4,17 @@ Port-Version: 6
 Homepage: https://llvm.org/
 Description: The LLVM Compiler Infrastructure
 Supports: !uwp
-Default-Features: tools, enable-rtti, disable-assertions, disable-abi-breaking-checks, clang, disable-clang-static-analyzer, lld, default-targets
+Default-Features: tools, enable-rtti, disable-assertions, disable-abi-breaking-checks, clang, lld, lifting-targets, enable-z3, libcxx, libcxxabi
 
 Feature: tools
 Description: Build LLVM tools.
 
 Feature: utils
 Description: Build LLVM utils.
+
+Feature: lifting-targets
+Description: Targets for lifting-bits
+Build-Depends: llvm[core,target-x86,target-arm,target-aarch64,target-sparc,target-nvptx]
 
 Feature: default-targets
 Description: Build with platform-specific default targets
@@ -106,3 +110,13 @@ Description: Build LLDB debugger.
 
 Feature: polly
 Description: Build polyhedral optimizations for LLVM.
+
+Feature: enable-z3
+Description: Compile with Z3 SMT solver support for Clang static analyzer.
+Build-Depends: z3, llvm[core,clang]
+
+Feature: libcxx
+Description: Build libcxx runtime
+
+Feature: libcxxabi
+Description: Build libcxxabi runtime

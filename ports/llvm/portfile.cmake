@@ -13,6 +13,7 @@ vcpkg_from_github(
         0002-fix-install-paths.patch
         0003-fix-vs2019-v16.6.patch
         0004-fix-dr-1734.patch
+        0005-fix-FindZ3.cmake.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -21,6 +22,8 @@ vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
     utils LLVM_BUILD_UTILS
     utils LLVM_INCLUDE_UTILS
     enable-rtti LLVM_ENABLE_RTTI
+    enable-z3 LLVM_ENABLE_Z3_SOLVER
+    libcxx LLVM_ENABLE_LIBCXX
 )
 
 # By default assertions are enabled for Debug configuration only.
@@ -66,6 +69,11 @@ if("clang" IN_LIST FEATURES OR "clang-tools-extra" IN_LIST FEATURES)
             # Disable dl library on Windows
             -DDL_LIBRARY_PATH:FILEPATH=
         )
+    elseif(VCPKG_TARGET_IS_OSX)
+        list(APPEND FEATURE_OPTIONS
+            -DDEFAULT_SYSROOT:FILEPATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+            -DLLVM_CREATE_XCODE_TOOLCHAIN=ON
+        )
     endif()
 endif()
 if("clang-tools-extra" IN_LIST FEATURES)
@@ -73,6 +81,19 @@ if("clang-tools-extra" IN_LIST FEATURES)
 endif()
 if("compiler-rt" IN_LIST FEATURES)
     list(APPEND LLVM_ENABLE_PROJECTS "compiler-rt")
+endif()
+if("libcxx" IN_LIST FEATURES)
+    list(APPEND LLVM_ENABLE_PROJECTS "libcxx")
+    list(APPEND FEATURE_OPTIONS
+        -DLIBCXX_ENABLE_STATIC=YES
+        -DLIBCXX_ENABLE_SHARED=YES
+        -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=YES
+        -DLIBCXX_ENABLE_FILESYSTEM=YES
+        -DLIBCXX_INCLUDE_BENCHMARKS=NO
+    )
+endif()
+if("libcxxabi" IN_LIST FEATURES)
+    list(APPEND LLVM_ENABLE_PROJECTS "libcxxabi")
 endif()
 if("lld" IN_LIST FEATURES)
     list(APPEND LLVM_ENABLE_PROJECTS "lld")
@@ -93,8 +114,8 @@ if("polly" IN_LIST FEATURES)
 endif()
 
 set(known_llvm_targets
-    AArch64 AMDGPU ARM BPF Hexagon Lanai Mips 
-    MSP430 NVPTX PowerPC RISCV Sparc SystemZ 
+    AArch64 AMDGPU ARM BPF Hexagon Lanai Mips
+    MSP430 NVPTX PowerPC RISCV Sparc SystemZ
     WebAssembly X86 XCore)
 
 set(LLVM_TARGETS_TO_BUILD "")
@@ -121,9 +142,12 @@ vcpkg_configure_cmake(
         -DLLVM_BUILD_EXAMPLES=OFF
         -DLLVM_INCLUDE_TESTS=OFF
         -DLLVM_BUILD_TESTS=OFF
-        # Disable optional dependencies to libxml2 and zlib
+        # Disable optional dependencies to libxml2, zlib, and libedit
         -DLLVM_ENABLE_LIBXML2=OFF
         -DLLVM_ENABLE_ZLIB=OFF
+        -DLLVM_ENABLE_LIBEDIT=OFF
+        # From llvm-9 onwards
+        -DCMAKE_CXX_STANDARD=14
         # Force TableGen to be built with optimization. This will significantly improve build time.
         -DLLVM_OPTIMIZED_TABLEGEN=ON
         # LLVM generates CMake error due to Visual Studio version 16.4 is known to miscompile part of LLVM.
@@ -135,7 +159,7 @@ vcpkg_configure_cmake(
         -DPACKAGE_VERSION=${VERSION}
         -DPYTHON_EXECUTABLE=${PYTHON3}
         # Limit the maximum number of concurrent link jobs to 1. This should fix low amount of memory issue for link.
-        -DLLVM_PARALLEL_LINK_JOBS=1
+        -DLLVM_PARALLEL_LINK_JOBS=4
         # Disable build LLVM-C.dll (Windows only) due to doesn't compile with CMAKE_DEBUG_POSTFIX
         -DLLVM_BUILD_LLVM_C_DYLIB=OFF
         -DCMAKE_DEBUG_POSTFIX=d
