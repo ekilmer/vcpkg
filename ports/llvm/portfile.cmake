@@ -13,7 +13,7 @@ vcpkg_from_github(
         0002-fix-install-paths.patch
         0003-fix-vs2019-v16.6.patch
         0004-fix-dr-1734.patch
-        0005-fix-FindZ3.cmake.patch
+        0005-remove-FindZ3.cmake.patch
 )
 
 vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
@@ -86,7 +86,8 @@ if("libcxx" IN_LIST FEATURES)
     list(APPEND LLVM_ENABLE_PROJECTS "libcxx")
     list(APPEND FEATURE_OPTIONS
         -DLIBCXX_ENABLE_STATIC=YES
-        -DLIBCXX_ENABLE_SHARED=YES
+        # Broken on Linux when set to YES
+        -DLIBCXX_ENABLE_SHARED=NO
         -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=YES
         -DLIBCXX_ENABLE_FILESYSTEM=YES
         -DLIBCXX_INCLUDE_BENCHMARKS=NO
